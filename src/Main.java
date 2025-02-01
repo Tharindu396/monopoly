@@ -173,29 +173,359 @@ public class Main extends JFrame implements ActionListener {
         c.add(panButtons);
         c.add(lp);
     }
-    public void actionPerformed(ActionEvent e){
-        if (e.getSource()==btnStart){
+    public void actionPerformed(ActionEvent e) {
+        // Execute the method in the actionPerformed if the "start" button is clicked
+        if (e.getSource() == btnStart){
             sendData(START);
             btnStart.setEnabled(false);
             btnRoll[player].setEnabled(false);
             reset();
         }
-        else{
-            if (e.getSource()==btnQuit){
-                sendData(QUIT)
+        else
+            // Execute the method in the actionPerformed if the "quit" button is clicked
+            if (e.getSource() == btnQuit){
+                sendData(QUIT);
             }
+            else
+                // Execute the method in the actionPerformed if the client type something in the txtChat
+                if(e.getSource() == txtChat)
+                {
+                    sendData(CHAT);
+                    String message = name+">>"+txtChat.getText();
+                    txtChat.setText("");
+                    sendMessage(message+"\n");
+                }
+                else{
+                    int n = (int)(Math.random()*6+1);
+                    lastRolled = n;
+                    sendData(MOVE);
+                    myPosition += n;
+                    myPosition=jailPos(myPosition);
+                    if (myPosition > 40){
+                        int value = myPosition;
+                        myPosition = value-40;
+                        rounds++;
+                        cash = cash + 200;
+                    }
+                    sendData(rounds);
+                    sendData(myPosition);
+                    btnRoll[player].setEnabled(false);
+                    if (rounds < 4){
+                        sendData(NEXT);
+                        int p = player+1;
+                        if (p >= number) p = 0;
+                        sendData(p);
+                        lblMessage.setText("You've rolled " + n + ". Please wait for your turn.\n");
+                    }
+                    propertyPos(myPosition);
+                    communityChest(myPosition);
+                    taDetails.setText("PlayerNo\tName\tCash\tRounds\n"+(player+1)+"\t"+name+"\t$"+cash+"\t"+rounds);
+                }
+    }
+    public static void sendData(int n){
+        try {
+            // Read primitive data type(Data) from the server
+            dOut.writeInt(n);
+        }
+        // Catch I/O exception
+        catch(IOException e){
         }
     }
 
-    public static void main(String[] args) {
-        //TIP Press <shortcut actionId="ShowIntentionActions"/> with your caret at the highlighted text
-        // to see how IntelliJ IDEA suggests fixing it.
-        System.out.printf("Hello and welcome!");
-
-        for (int i = 1; i <= 5; i++) {
-            //TIP Press <shortcut actionId="Debug"/> to start debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-            // for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>.
-            System.out.println("i = " + i);
+    public static void sendMessage(String message){
+        try {
+            // Read primitive data type(Message) from the server
+            dOut.writeUTF(message);
         }
+        // Catch I/O exception
+        catch(IOException e){
+        }
+    }
+    public void reset(){
+        myPosition = 0;
+        cash = 5000;
+        rounds = 1;
+        lastRolled = 0;
+        for (int i=0; i<number; i++){
+            lblFaces[i].setBounds(new Rectangle(540+i*20, 670, iconWidth, iconHeight));
+            lp.remove(lblFaces[i]);
+            lp.add(lblFaces[i], new Integer(1));
+        }
+        p1.setStatus("Vacant");
+        p2.setStatus("Vacant");
+        p3.setStatus("Vacant");
+        p4.setStatus("Vacant");
+        p5.setStatus("Vacant");
+        p6.setStatus("Vacant");
+        p7.setStatus("Vacant");
+        p8.setStatus("Vacant");
+        p9.setStatus("Vacant");
+        p10.setStatus("Vacant");
+        p11.setStatus("Vacant");
+        p12.setStatus("Vacant");
+        p13.setStatus("Vacant");
+        p14.setStatus("Vacant");
+        p15.setStatus("Vacant");
+        p16.setStatus("Vacant");
+        p17.setStatus("Vacant");
+        p18.setStatus("Vacant");
+        p19.setStatus("Vacant");
+        p20.setStatus("Vacant");
+        p21.setStatus("Vacant");
+        p22.setStatus("Vacant");
+        p23.setStatus("Vacant");
+        p24.setStatus("Vacant");
+        p25.setStatus("Vacant");
+        p26.setStatus("Vacant");
+    }
+    public void process(){
+        btnRoll[player].setText("Roll Dice");
+
+        while (true){
+            try{
+                int code=dIn.readInt();
+                btnStart.setEnabled(false);
+                if(code==ROLL){
+                    btnRoll[player].setVisible(true);
+                    btnRoll[player].setEnabled(true);
+                    lblMessage.setText("It is now your turn. Please roll the dice." + " Previous roll: " + lastRolled + "\n");
+                }
+                else
+                    // Method for moving the position of the player around the gameboard
+                    if (code==MOVE){
+                        int position=dIn.readInt();
+                        int p1=dIn.readInt();
+                        move(lblFaces[p1],position,p1);
+                    }
+                    else
+                        // Method for indicating which player is the winner
+                        if (code==WIN){
+                            int p1=0;
+                            String p1Name="";
+                            for(int i=0; i<number; i++)
+                            {
+                                sendPlayerDetails();
+                                sendData(CALWINNER);
+                                p1=dIn.readInt()+1;
+                                p1Name=dIn.readUTF();
+                            }
+                            JOptionPane.showMessageDialog(null, "Player: " + p1 + " Name: " + p1Name + " wins!");
+                            btnRoll[player].setEnabled(false);
+                            btnStart.setText("Restart");
+                            btnStart.setEnabled(true);
+                        }
+                        else
+                            // Method for determining which player start first
+                            if (code==START){
+                                int p1=dIn.readInt();
+                                lblMessage.setText("Please wait for your turn");
+                                reset();
+                            }
+                            else
+                                // Method for selecting the "quit" button
+                                if (code==QUIT){
+                                    System.out.println("QUIT");
+                                    int p1=0;
+                                    String p1Name="";
+                                    for(int i=0; i<number; i++)
+                                    {
+                                        sendPlayerDetails();
+                                        sendData(CALWINNER);
+                                        p1=dIn.readInt()+1;
+                                        p1Name=dIn.readUTF();
+                                    }
+                                    JOptionPane.showMessageDialog(null, "Player: " + p1 + " Name: " + p1Name + " wins!");
+                                    for(int i=0; i<number; i++)
+                                    {
+                                        System.exit(0);
+                                    }
+                                }
+                                else
+                                    // Method for creating a chat between multiple players
+                                    if (code == CHAT){
+                                        String msg=dIn.readUTF();
+                                        taChat.append(msg);
+                                        taChat.setCaretPosition(taChat.getText().length());
+                                    }
+                                    else
+                                        // Method to execute the random community chest cards
+                                        if (code == BIRTHDAY){
+                                            cash  = cash - 100;
+                                        }
+                                        else
+                                            // Method to execute the random community chest cards
+                                            if(code == GENEROUS){
+                                                cash = cash + 20;
+                                            }
+                                            else
+                                                // Method to execute the buying of property
+                                                if (code == BUY){
+                                                    int property=dIn.readInt();
+                                                    if (property == 1){
+                                                        p1.setStatus("Bought");
+                                                    }
+                                                    if (property == 2){
+                                                        p2.setStatus("Bought");
+                                                    }
+                                                    if (property == 3){
+                                                        p3.setStatus("Bought");
+                                                    }
+                                                    if (property == 4){
+                                                        p4.setStatus("Bought");
+                                                    }
+                                                    if (property == 5){
+                                                        p5.setStatus("Bought");
+                                                    }
+                                                    if (property == 6){
+                                                        p6.setStatus("Bought");
+                                                    }
+                                                    if (property == 7){
+                                                        p7.setStatus("Bought");
+                                                    }
+                                                    if (property == 8){
+                                                        p8.setStatus("Bought");
+                                                    }
+                                                    if (property == 9){
+                                                        p9.setStatus("Bought");
+                                                    }
+                                                    if (property == 10){
+                                                        p10.setStatus("Bought");
+                                                    }
+                                                    if (property == 11){
+                                                        p11.setStatus("Bought");
+                                                    }
+                                                    if (property == 12){
+                                                        p12.setStatus("Bought");
+                                                    }
+                                                    if (property == 13){
+                                                        p13.setStatus("Bought");
+                                                    }
+                                                    if (property == 14){
+                                                        p14.setStatus("Bought");
+                                                    }
+                                                    if (property == 15){
+                                                        p15.setStatus("Bought");
+                                                    }
+                                                    if (property == 16){
+                                                        p16.setStatus("Bought");
+                                                    }
+                                                    if (property == 17){
+                                                        p17.setStatus("Bought");
+                                                    }
+                                                    if (property == 18){
+                                                        p18.setStatus("Bought");
+                                                    }
+                                                    if (property == 19){
+                                                        p19.setStatus("Bought");
+                                                    }
+                                                    if (property == 20){
+                                                        p20.setStatus("Bought");
+                                                    }
+                                                    if (property == 21){
+                                                        p21.setStatus("Bought");
+                                                    }
+                                                    if (property == 22){
+                                                        p22.setStatus("Bought");
+                                                    }
+                                                    if (property == 23){
+                                                        p23.setStatus("Bought");
+                                                    }
+                                                    if (property == 24){
+                                                        p24.setStatus("Bought");
+                                                    }
+                                                    if (property == 25){
+                                                        p25.setStatus("Bought");
+                                                    }
+                                                    if (property == 26){
+                                                        p26.setStatus("Bought");
+                                                    }
+                                                }
+            }
+            // Catch I/O Exception
+            catch(Exception e){
+                System.out.println("Exception: " + e.getMessage());
+            }
+        }
+    }
+    public void move(JLabel lblFace, int n, int player){
+        // Declaring the x Coordinates
+        int xCoor = 0;
+        // Declaring the y coordinates
+        int yCoor = 0;
+        int shiftx = 0;
+        int shifty = 0;
+        // Check if the position of the player is less than or equal to 10
+        if (n<=10)
+        {
+            xCoor = 535-(n*width);
+            yCoor = 670;
+            shifty = 0 - player*20;
+        }
+        // Check if the position of the player is less than or equal to 20 && more than 10
+        else if (n<=20 && n>10)
+        {
+            int value = n-10;
+            xCoor = 35;
+            yCoor = 636-(value*height);
+            shiftx = player*20;
+        }
+        // Check if the position of the player is less than or equal to 30 && more than 20
+        else if (n<=30 && n>20)
+        {
+            int value = n-20;
+            xCoor = 66+(value*width);
+            yCoor = 125;
+            shifty = player*20;
+        }
+        // Check if the position of the player is less than or equal to 40 && more than 30
+        else if(n<=40 && n>30)
+        {
+            int value = n-30;
+            xCoor = 573;
+            yCoor = 155+(value*height);
+            shiftx = 0 - player*20;
+        }
+        // Check if the position of the player is more than 40
+        else if(n>40)
+        {
+            n = n - 40;
+        }
+        lblFace.setBounds(new Rectangle(xCoor+shiftx, yCoor+shifty, iconWidth, iconHeight));
+        lp.remove(lblFace);
+        lp.add(lblFace, new Integer(1));
+    }
+
+    //Chatting connection protocol
+    public void runClient(){
+
+        String serverAddr = ipAddr; 	// server host name
+        int portNo = 9000;	     		// server port number
+
+        try {
+            // S1 - create a socket to connect to server
+            Socket  con = new Socket(serverAddr, portNo);
+            System.out.println("Client connected to server");
+
+            // S2 - create input and output streams
+            dIn  = new DataInputStream(con.getInputStream());
+            dOut = new DataOutputStream(con.getOutputStream());
+
+            String data,message;
+
+            data = dIn.readUTF();
+            taChat.append(data+"\n");
+            taChat.setCaretPosition(taChat.getText().length());
+            message = data.substring(data.indexOf(">>")+3);
+
+            // S4 - close connection
+            con.close();
+        }
+        catch (UnknownHostException e) {
+            System.out.println("Error : Unable to find host");
+        }
+        catch (IOException e) {
+            System.out.println("Error : Unable to get I/O for the connection");
+        }
+
     }
 }
