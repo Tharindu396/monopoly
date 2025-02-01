@@ -86,7 +86,105 @@ public class Main extends JFrame implements ActionListener {
     Property p26 = new Property("Makan Place", "200", "Vacant");
 
     public Main(){
-        JPanel details=
+        Container c = getContentPane();
+
+        // player details panel
+        JPanel details = new JPanel();
+        details.setOpaque(true);
+        details.setBounds(633,30,420,80);
+        taDetails = new JTextArea("PlayerNo\tName\tCash\tRounds\n"+(player+1)+"\t"+name+"\t$"+cash+"\t"+rounds);
+        taDetails.setCaretPosition(0);
+        taDetails.setEditable(false);
+        scrollDetails = new JScrollPane(taDetails);
+        scrollDetails.setOpaque(true);
+        scrollDetails.setBounds(653,60,380,35);
+        TitledBorder detailsTitle = BorderFactory.createTitledBorder("Your Statistics");
+        details.setBorder(detailsTitle);
+        // chatPanel for chatting area
+        JPanel chatArea = new JPanel();
+        chatArea.setOpaque(true);
+        chatArea.setBounds(633,112,420,591);
+        chatArea.add(lblChat = new JLabel("Enter Chat Message:"));
+        chatArea.add(txtChat = new JTextField(30));
+        taChat = new JTextArea();
+        taChat.setCaretPosition(0);
+        taChat.setEditable(false);
+        scrollDisplay = new JScrollPane(taChat);
+        scrollDisplay.setOpaque(true);
+        scrollDisplay.setBounds(653,207,380,476);
+        //chatArea.add(scrollDisplay);
+        TitledBorder chatTitle = BorderFactory.createTitledBorder("Chatting Interface");
+        chatArea.setBorder(chatTitle);
+        // layeredPane for the game board
+        lp = new JLayeredPane();
+        lblBackground = new JLabel(background);
+        lblBackground.setOpaque(true);
+        lblBackground.setBounds(20,110,593,593);
+        lp.add(lblBackground, 0);
+        lp.add(details, 0);
+        lp.add(scrollDetails, 0);
+        lp.add(chatArea, 0);
+        lp.add(scrollDisplay, 0);
+        TitledBorder gameTitle = BorderFactory.createTitledBorder("Monopoly Game");
+        lp.setBorder(gameTitle);
+
+        // create the ImageIcon objects with the files and the lables with the ImageIcon objects
+        // set the starting location for the labels and add them
+        for (int i=0; i<number; i++){
+            faces[i] = new ImageIcon("icon"+(i+1)+".png");
+            lblFaces[i] = new JLabel(faces[i]);
+            iconWidth = faces[i].getIconWidth();
+            iconHeight = faces[i].getIconHeight();
+            lblFaces[i].setBounds(new Rectangle(540+i*20, 670, iconWidth, iconHeight));
+            lp.add(lblFaces[i], new Integer(1));
+        }
+
+        // create the JButton objects with the dice and add them to a panel
+        JPanel panButtons = new JPanel();
+        panButtons.setLayout(new GridLayout(2,1));
+        JPanel pan1 = new JPanel();
+        JPanel pan2 = new JPanel();
+        for (int i=0; i<number; i++){
+            btnRoll[i] = new JButton("Dice"+(i+1));
+            btnRoll[i].addActionListener(this);
+            btnRoll[i].setEnabled(false);
+            if (i != player)
+                btnRoll[i].setVisible(false);
+            pan1.add(btnRoll[i]);
+        }
+        // Adding of buttons into the JPanel
+        pan1.add(btnStart);
+        pan1.add(btnQuit);
+        // Adding action listener to the buttons
+        btnStart.addActionListener(this);
+        btnQuit.addActionListener(this);
+        txtChat.addActionListener(this);
+        // Check which client starts the game first
+        if (player == number-1)
+            lblMessage.setText("Click start button to begin");
+        else
+            lblMessage.setText("Welcome! Waiting for other player to connect.");
+        // Adding of labels into the JPanel
+        pan2.add(lblMessage);
+        panButtons.add(pan2);
+        panButtons.add(pan1);
+        panButtons.setBounds(145,30,360,65);
+
+        c.add(panButtons);
+        c.add(lp);
+    }
+    public void actionPerformed(ActionEvent e){
+        if (e.getSource()==btnStart){
+            sendData(START);
+            btnStart.setEnabled(false);
+            btnRoll[player].setEnabled(false);
+            reset();
+        }
+        else{
+            if (e.getSource()==btnQuit){
+                sendData(QUIT)
+            }
+        }
     }
 
     public static void main(String[] args) {
