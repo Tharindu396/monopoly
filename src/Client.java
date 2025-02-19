@@ -548,7 +548,7 @@ public class Client extends JFrame implements ActionListener{
             player = dIn.readInt();
             dOut.writeUTF(name);
             Client t = new Client();
-            t.setTitle("Welcome to NgeeAnnPoly, " + name + "!");
+            t.setTitle("Welcome to RuhPolly, " + name + "!");
             t.setSize(1093,760);
             t.setVisible(true);
             t.process();
