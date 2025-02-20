@@ -37,7 +37,7 @@ public class Client extends JFrame implements ActionListener{
     // Declaring attributes for the GUI
     private static final int MAX=5;
     private JLayeredPane lp;
-    private ImageIcon background = new ImageIcon("Monopoly.jpg");
+    private ImageIcon background = new ImageIcon(getClass().getResource("/Monopoly.jpg"));
     private ImageIcon[] faces = new ImageIcon[MAX];
     private JLabel[] lblFaces = new JLabel[MAX];
     private JButton[] btnRoll=new JButton[MAX];
