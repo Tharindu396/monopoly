@@ -131,7 +131,7 @@ public class Client extends JFrame implements ActionListener{
         // create the ImageIcon objects with the files and the lables with the ImageIcon objects
         // set the starting location for the labels and add them
         for (int i=0; i<number; i++){
-            faces[i] = new ImageIcon("icon"+(i+1)+".png");
+            faces[i] = new ImageIcon(getClass().getResource("/icon" + (i + 1) + ".png"));
             lblFaces[i] = new JLabel(faces[i]);
             iconWidth = faces[i].getIconWidth();
             iconHeight = faces[i].getIconHeight();
